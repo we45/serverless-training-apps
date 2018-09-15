@@ -1,0 +1,3 @@
+
+*.json
+flask_cv_upload/.serverless/*
