@@ -4,7 +4,9 @@ const ApiBuilder = require("claudia-api-builder");
 const api = new ApiBuilder();
 const fs = require("fs");
 const AWS = require("aws-sdk");
+const fake = require("faker/locale/en_US");
 const dynamo = new AWS.DynamoDB.DocumentClient();
+const userTypes = ["user", "admin"];
 
 module.exports = api;
 
@@ -12,7 +14,7 @@ api.get("/init", request => {
   let key = fs.readFileSync("private_key.pem", "utf8");
   console.log(key);
   let auth_token = jwt.sign({ user: "user", authenticated: false }, key, {
-    algorithms: "RS256"
+    algorithm: "RS256"
   });
   try {
     pub_key = fs.readFileSync("public_key.pem").toString("base64");
@@ -57,7 +59,23 @@ api.get("/none", request => {
   }
 });
 
-// api.post("/swtich_smith", request => {});
+api.get(
+  "/add_random",
+  request => {
+    let randomChoice = Math.floor(Math.random() * userTypes.length);
+    const params = {
+      TableName: "cv_users",
+      Item: {
+        email: fake.internet.email(),
+        username: fake.internet.userName(),
+        role: userTypes[randomChoice]
+      }
+    };
+    console.log(params);
+    dynamo.put(params).promise();
+  },
+  { success: 201 }
+);
 
 api.get("/whoami", request => {
   let auth_token = request.headers["Authorization"];
@@ -73,7 +91,7 @@ api.get("/whoami", request => {
     let userName = decoded["user_name"];
     console.log("User: ", userName);
     let params = {
-      TableName: "dynamo-user",
+      TableName: "cv_users",
       Key: {
         username: userName
       }

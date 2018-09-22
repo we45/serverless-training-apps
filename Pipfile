@@ -4,6 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [dev-packages]
+ipython = "*"
 
 [packages]
 chalice = "*"
@@ -12,6 +13,11 @@ flask = "*"
 faker = "*"
 python-docx = "==0.8.4"
 pyjwt = "*"
+aws-xray-sdk = "*"
+pyyaml = "*"
+docopt = "*"
+huepy = "*"
+redis = "*"
 
 [requires]
 python_version = "2.7"
