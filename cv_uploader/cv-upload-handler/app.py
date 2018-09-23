@@ -10,17 +10,17 @@ import cgi
 from uuid import uuid4
 from xml.dom.pulldom import START_ELEMENT, parse, parseString
 
-
 app = Chalice(app_name='chalice-cv-event-handler')
 dynamo = boto3.resource('dynamodb')
 HMAC_PASSWORD = 'secret'
 HMAC_PASSWORD_2 = '82a825e9-c919-4247-9638-4c8d20efba1e'
 
+
 def get_user_for_event(event_key):
     try:
         print(event_key)
         table = dynamo.Table('cv_data')
-        resp = table.get_item(Key = {'filename': event_key})
+        resp = table.get_item(Key={'filename': event_key})
         if resp.has_key('Item'):
             print resp['Item']
             return resp['Item']['email']
@@ -43,7 +43,7 @@ def cv_event_handler(event):
             # docbody = s3.meta.client.download_file('training-cv-uploader', event.key, "/tmp/{}".format(event.key))
             doc = parseString(docbody)
             content = ''
-            for event,node in doc:
+            for event, node in doc:
                 # print("Node", node.toxml())
                 doc.expandNode(node)
                 content = node.toxml()
@@ -56,10 +56,10 @@ def cv_event_handler(event):
             # print(all_paras)
             try:
                 cv_table = dynamo.Table('cv_data')
-                response = cv_table.get_item(Key = {'filename': file_name})
+                response = cv_table.get_item(Key={'filename': file_name})
                 item = response['Item']
                 item['file_content'] = b64encode(content)
-                cv_table.put_item(Item = item)
+                cv_table.put_item(Item=item)
                 # response = cv_table.update_item(
                 #     Key = {'filename': file_name},
                 #     UpdateExpression = "set file_content = :fc",
@@ -89,7 +89,7 @@ def is_valid_jwt(token):
         raise Exception("Token doesnt have required value")
 
 
-@app.route('/protected', methods = ['GET'])
+@app.route('/protected', methods=['GET'], cors = True)
 def protected_view():
     try:
         hello = dict(app.current_request.headers)
@@ -106,7 +106,8 @@ def protected_view():
     except Exception as e:
         return BadRequestError(e)
 
-@app.route('/delete_user/{email}', methods = ['DELETE'])
+
+@app.route('/delete_user/{email}', methods=['DELETE'], cors = True)
 def delete_user(email):
     try:
         hello = dict(app.current_request.headers)
@@ -114,7 +115,7 @@ def delete_user(email):
             token = hello.get('authorization')
             if token == 'admin' or token == 'staff':
                 table = dynamo.Table('cv_users')
-                resp = table.delete_item(Key = {
+                resp = table.delete_item(Key={
                     'email': email
                 })
                 if resp.has_key('Error'):
@@ -128,6 +129,7 @@ def delete_user(email):
     except Exception as e:
         return BadRequestError(e)
 
+
 def _get_parts():
     rfile = BytesIO(app.current_request.raw_body)
     content_type = app.current_request.headers['content-type']
@@ -136,15 +138,15 @@ def _get_parts():
     parsed = cgi.parse_multipart(rfile, parameters)
     return parsed
 
-@app.route('/upload', methods=['POST'],content_types=['multipart/form-data'])
-def upload():
 
+@app.route('/upload', methods=['POST'], content_types=['multipart/form-data'], cors = True)
+def upload():
     try:
         hello = dict(app.current_request.headers)
         print hello['authorization']
         if hello.has_key('authorization'):
             decoded = jwt.decode(str(hello['authorization']), HMAC_PASSWORD_2, algorithms=['HS256'])
-            print "decoded",decoded
+            print "decoded", decoded
             details = is_valid_jwt(decoded)
             # print "details",details[]
         s3 = boto3.client('s3')
@@ -156,7 +158,7 @@ def upload():
 
             table = dynamo.Table('cv_data')
             table.put_item(
-                Item = {
+                Item={
                     'filename': file_key,
                     'email': details[0]['email']
                 }
@@ -169,15 +171,18 @@ def upload():
     except Exception as e:
         raise BadRequestError(e)
 
-@app.route('/bad_dynamo_search', methods = ['POST'], content_types = ['application/json'])
+
+@app.route('/bad_dynamo_search', methods=['POST'], content_types=['application/json'], cors = True)
 def bad_search():
     try:
         jbody = app.current_request.json_body
         if isinstance(jbody, dict):
-            if jbody.has_key('db') and jbody.has_key('search_term') and jbody.has_key('search_operator') and jbody.has_key('search_field'):
+            if jbody.has_key('db') and jbody.has_key('search_term') and jbody.has_key(
+                    'search_operator') and jbody.has_key('search_field'):
                 db = boto3.client('dynamodb')
-                response = db.scan(TableName = jbody['db'], Select = 'ALL_ATTRIBUTES', ScanFilter = {
-                    jbody['search_field']: {"AttributeValueList": [{"S":jbody['search_term']}], "ComparisonOperator": jbody['search_operator']}
+                response = db.scan(TableName=jbody['db'], Select='ALL_ATTRIBUTES', ScanFilter={
+                    jbody['search_field']: {"AttributeValueList": [{"S": jbody['search_term']}],
+                                            "ComparisonOperator": jbody['search_operator']}
                 })
                 if response.has_key('Items'):
                     return {"search_results": response['Items']}
@@ -189,6 +194,3 @@ def bad_search():
             return BadRequestError("Seems to be a wrong content type")
     except Exception as e:
         return BadRequestError(e.message)
-
-
-
