@@ -1,7 +1,5 @@
 from flask import Flask, request, jsonify, render_template, render_template_string
 from werkzeug.utils import secure_filename
-# from aws_xray_sdk.core import xray_recorder
-# from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 from random import randint
 import json
 import yaml
@@ -14,8 +12,6 @@ app.secret_key = 'F12Zr47j\3yX R~X@H!jmM]Lwf/,?KT'
 app.config['STATIC_FOLDER'] = None
 app.config['UPLOAD_FOLDER'] = '/tmp'
 
-# xray_recorder.configure(service='Orrible Flask App', dynamic_naming='*mysite.com*')
-# XRayMiddleware(app, xray_recorder)
 
 
 @app.route("/echo_service", methods = ["POST"])

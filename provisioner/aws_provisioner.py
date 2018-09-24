@@ -151,11 +151,11 @@ limited_user_permissions_policy = '''
 #         exc_type, exc_value, exc_traceback = sys.exc_info()
 #         print bad('Error: {0} {1}'.format(e, exc_traceback.tb_lineno))
 #
-# def gen_random_password():
-#     password = ""
-#     for c in range(10):
-#         password += choice(pass_chars)
-#     return password
+def gen_random_password():
+    password = ""
+    for c in range(10):
+        password += choice(pass_chars)
+    return password
 #
 # def create_dynamo_tables():
 #     try:
@@ -283,23 +283,23 @@ limited_user_permissions_policy = '''
 #         exc_type, exc_value, exc_traceback = sys.exc_info()
 #         print bad('Error: {0} {1}'.format(e, exc_traceback.tb_lineno))
 #
-# def load_policy_iam(policy_type):
-#     if policy_type == 'limited':
-#         if db.get('limited_iam_policy'):
-#             print bad("there's already a limited policy in place. Not creating...")
-#         else:
-#             try:
-#                 response = iam.create_policy(
-#                     PolicyName = 'TraineePolicyLimited',
-#                     PolicyDocument = json.dumps(json.loads(limited_user_permissions_policy)),
-#                     Description = 'This policy is meant for trainees to have view-only access to resources in AWS'
-#                 )
-#                 arn = response['Policy']['Arn']
-#                 print good('Trainee policy generated with ARN: {}'.format(arn))
-#                 db.set('limited_iam_policy', json.dumps({'name': 'TraineePolicyLimited', 'arn': arn}))
-#             except Exception as e:
-#                 exc_type, exc_value, exc_traceback = sys.exc_info()
-#                 print bad('Error: {0} {1}'.format(e, exc_traceback.tb_lineno))
+def load_policy_iam(policy_type):
+    if policy_type == 'limited':
+        if db.get('limited_iam_policy'):
+            print bad("there's already a limited policy in place. Not creating...")
+        else:
+            try:
+                response = iam.create_policy(
+                    PolicyName = 'TraineePolicyLimited',
+                    PolicyDocument = json.dumps(json.loads(limited_user_permissions_policy)),
+                    Description = 'This policy is meant for trainees to have view-only access to resources in AWS'
+                )
+                arn = response['Policy']['Arn']
+                print good('Trainee policy generated with ARN: {}'.format(arn))
+                db.set('limited_iam_policy', json.dumps({'name': 'TraineePolicyLimited', 'arn': arn}))
+            except Exception as e:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                print bad('Error: {0} {1}'.format(e, exc_traceback.tb_lineno))
 
 def gen_users(seed):
     username = "{}-user-{}".format(seed, randint(0, 999999))
@@ -397,6 +397,7 @@ def export_users_to_csv(seed = None):
         if user_length > 0:
             for i in range(0, user_length):
                 user = json.loads(db.lindex('limited_iam_users', i))
+                print user
                 if user.keys()[0].startswith(seed):
                     export_list.append(user)
         gen_csv_file(export_list)
