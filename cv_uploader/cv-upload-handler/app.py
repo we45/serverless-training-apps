@@ -81,6 +81,7 @@ def is_valid_jwt(token):
     if token.has_key('username'):
         table = dynamo.Table('cv_users')
         resp = table.scan(Select='ALL_ATTRIBUTES', FilterExpression=Attr('username').eq(token.get('username')))
+        print resp
         if resp.has_key('Items'):
             return resp['Items']
         else:
@@ -194,3 +195,27 @@ def bad_search():
             return BadRequestError("Seems to be a wrong content type")
     except Exception as e:
         return BadRequestError(e.message)
+
+@app.route("/whoami", methods = ['GET'], cors = True)
+def whoami():
+    hello = dict(app.current_request.headers)
+    print hello['authorization']
+    if hello.has_key('authorization'):
+        try:
+            decoded = jwt.decode(str(hello['authorization']), HMAC_PASSWORD_2, algorithms=['HS256'])
+            # print "decoded", decoded
+            details = is_valid_jwt(decoded)
+            if details[0].has_key('role'):
+                if details[0]['role'] == 'admin':
+                    return {'success': {'user': details[0]['username'], 'email': details[0]['email'], 'role': details[0]['role']}}
+                elif details[0]['role'] == 'user':
+                    return {
+                        'success': {'user': details[0]['username'], 'email': details[0]['email'], 'role': details[0]['role']}}
+                else:
+                    return BadRequestError('Not able to verify user')
+            else:
+                return BadRequestError('Unable to verify user, based on token')
+        except Exception as e:
+            return UnauthorizedError(e)
+    else:
+        return UnauthorizedError('No Token')

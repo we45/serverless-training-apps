@@ -77,40 +77,40 @@ api.get(
   { success: 201 }
 );
 
-api.get("/whoami", request => {
-  let auth_token = request.headers["Authorization"];
-  if (auth_token == null) {
-    return new ApiBuilder.ApiResponse({ error: "No Auth token" }, {}, 403);
-  }
-  try {
-    let decoded = jwt.verify(
-      auth_token,
-      hmac_password,
-      (algorithms = ["HS256"])
-    );
-    let userName = decoded["user_name"];
-    console.log("User: ", userName);
-    let params = {
-      TableName: "cv_users",
-      Key: {
-        username: userName
-      }
-    };
-    try {
-      dynamo.get(params, function(err, data) {
-        if (err) {
-          console.log(err);
-          return new ApiBuilder.ApiResponse({ error: err }, {}, 400);
-        } else {
-          console.log("Data: " + data);
-          return new ApiBuilder.ApiResponse(({ data: data.Items }, {}, 200));
-        }
-      });
-    } catch (err) {
-      console.log(err);
-    }
-  } catch (err) {
-    console.error(err);
-    return new ApiBuilder.ApiResponse({ error: err }, {}, 400);
-  }
-});
+// api.get("/whoami", request => {
+//   let auth_token = request.headers["Authorization"];
+//   if (auth_token == null) {
+//     return new ApiBuilder.ApiResponse({ error: "No Auth token" }, {}, 403);
+//   }
+//   try {
+//     let decoded = jwt.verify(
+//       auth_token,
+//       hmac_password,
+//       (algorithms = ["HS256"])
+//     );
+//     let userName = decoded["user_name"];
+//     console.log("User: ", userName);
+//     let params = {
+//       TableName: "cv_users",
+//       Key: {
+//         username: userName
+//       }
+//     };
+//     try {
+//       dynamo.get(params, function(err, data) {
+//         if (err) {
+//           console.log(err);
+//           return new ApiBuilder.ApiResponse({ error: err }, {}, 400);
+//         } else {
+//           console.log("Data: " + data);
+//           return new ApiBuilder.ApiResponse(({ data: data.Items }, {}, 200));
+//         }
+//       });
+//     } catch (err) {
+//       console.log(err);
+//     }
+//   } catch (err) {
+//     console.error(err);
+//     return new ApiBuilder.ApiResponse({ error: err }, {}, 400);
+//   }
+// });
