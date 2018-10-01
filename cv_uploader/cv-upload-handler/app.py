@@ -161,7 +161,8 @@ def upload():
             table.put_item(
                 Item={
                     'filename': file_key,
-                    'email': details[0]['email']
+                    'email': details[0]['email'],
+                    'username': details[0]['username']
                 }
             )
             sleep(2)

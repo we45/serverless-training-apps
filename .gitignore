@@ -1,3 +1,4 @@
 
 *.json
 flask_cv_upload/.serverless/*
+*.0_x4
