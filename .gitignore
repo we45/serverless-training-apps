@@ -2,3 +2,6 @@
 *.json
 flask_cv_upload/.serverless/*
 *.0_x4
+serverless_ctf/ctf_app/secret.txt
+serverless_ctf/terraform.tfstate
+serverless_ctf/terraform.tfstate.backup

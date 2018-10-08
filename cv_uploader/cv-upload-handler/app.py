@@ -40,7 +40,6 @@ def cv_event_handler(event):
         if email:
             docfile = s3.Object('training-cv-uploader', file_name)
             docbody = docfile.get()['Body'].read()
-            # docbody = s3.meta.client.download_file('training-cv-uploader', event.key, "/tmp/{}".format(event.key))
             doc = parseString(docbody)
             content = ''
             for event, node in doc:
